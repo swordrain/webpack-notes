@@ -15,7 +15,32 @@ npm install webpack -g
 npm install webpack --save-dev
 ```
 ## 基本用法 ##
+<p>直接执行webpack命令，会去当前目录寻找默认配置文件webpack.config.js，根据该配置文件执行</p>
+<p>或者使用参数</p>
+```
+--display-error-details  显示详细的出错信息
+--config XXX.js 使用XXX.js作为配置文件
+--watch  监听变动并自动执行打包
+-p  压缩混淆脚本，重要
+-d  生成map映射文件，告知哪些模块被最终打包到何处
+```
 
+
+最终需要将打包后的文件放入一个html中，当然这一步也可以由插件自动生成，一个典型的html文件是
+```
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>demo</title>
+</head>
+<body>
+    <script src="dist/js/page/common.js"></script>
+    <script src="dist/js/page/index.js"></script>
+</body>
+</html>
+```
+在<script>标签里引用了打包后的文件
 
 ## 配置 ##
 <p>默认配置文件webpack.config.js，如果要自定义，在webpack命令后跟--config [configfile.js]</p>
@@ -72,6 +97,33 @@ module.exports = {
 { test: /\.css$/, loader: 'style-loader!css-loader' }
 ```
 
+####图片资源文件的处理####
+一个典型的配置
+```
+{ test: /\.(png|jpg)$/, loader: 'url-loader?limit=8192'}
+```
+需要安装
+```
+npm install url-loader -save-dev
+```
+其中?limit=8192表示图片大小在8k以下的会转换成base64编码
+####不符合规范的模块处理(shim)####
+参考[exports-loader](https://github.com/webpack/exports-loader)
+安装
+```
+npm install exports-loader --save
+```
+配置
+```
+{ test: require.resolve("./src/js/tool/swipe.js"),  loader: "exports?swipe"}
+```
+使用
+```
+var swipe = require('./tool/swipe.js');
+swipe(); 
+```
+
+###resolve###
 
 ###plugins###
 
