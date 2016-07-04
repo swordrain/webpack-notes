@@ -40,7 +40,7 @@ npm install webpack --save-dev
 </body>
 </html>
 ```
-在<script>标签里引用了打包后的文件
+在&lt;script&gt;标签里引用了打包后的文件
 
 ## 配置 ##
 <p>默认配置文件webpack.config.js，如果要自定义，在webpack命令后跟--config [configfile.js]</p>
