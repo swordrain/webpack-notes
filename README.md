@@ -236,6 +236,23 @@ document.body.appendChild(img);
 npm install url-loader -save-dev
 ```
 其中?limit=8192表示图片大小在8k以下的会转换成base64编码
+
+####ES6语法的处理####
+安装
+```
+npm install --save-dev babel-loader babel-core babel-preset-es2015
+```
+在根目录下创建.babelrc配置文件
+```
+{
+  "presets": ["es2015"]
+}
+```
+webpack.config.js中的配置
+```
+{ test: /\.js$/, exclude: /node_modules/, loader: "babel-loader" }
+```
+
 ####不符合规范的模块处理(shim)####
 参考[exports-loader](https://github.com/webpack/exports-loader)
 安装
@@ -258,7 +275,22 @@ swipe();
 ###plugins###
 
 ####使用html-webpack-plugin自动生成入口文件####
-
+安装
+```
+npm install html-webpack-plugin --save-dev
+```
+配置
+```
+new HtmlWebpackPlugin({
+	template: './src/html/index.html',
+        filename: 'html/index.html',
+        inject: 'body',
+        hash: true, // index.js?hash
+        cache: true, // if true (default) try to emit the file only if it was changed.
+        showErrors: true, // if true (default) errors details will be written into the html page.
+        chunks: ['js/index'] // filter chunks
+})
+```
 
 ####使用CommonsChunkPlugin提取公共模块####
 如果在不同的文件中各自引用了import React from 'react'，那么打包的时候react模块会被打包多次，需要使用CommonsChunkPlugin将公共的模块提取到一个公共部分
@@ -364,6 +396,39 @@ plugins: [
 ]
 ```
 
+##webpack-dev-server
+安装
+```
+npm install --save-dev webpack-dev-server
+```
+配置
+```
+module.exports = {
+    entry: {
+        'js/index': './src/js/index.js'
+    },
+    output: {
+        path: './build',
+        filename: '[name].js'
+    },
+    devServer: {
+        progress: true,
+        host: '0.0.0.0',
+        port: 8080,
+        colors: true,
+        inline: true,
+        // hot: true,
+        contentBase: './src',
+        displayErrorDetails: true
+    },
+    module: {
+        loaders: loaders
+    },
+    plugins: plugins
+};
+```
+
+
 ##配合grunt/gulp##
 
 
@@ -375,4 +440,5 @@ plugins: [
 <li>http://www.cnblogs.com/LIUYANZUO/p/5184424.html</li>
 <li>http://gaearon.github.io/react-hot-loader/getstarted/</li>
 <li>http://www.cnblogs.com/xianyulaodi/p/5314769.html</li>
+<li>http://www.cnblogs.com/yangjunhua/p/5615118.html</li>
 </ol>
