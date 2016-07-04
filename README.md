@@ -92,12 +92,43 @@ module.exports = {
 
 
 ###loaders###
-一个文件类型如果有多个loader，使用!将其分开，如
+如果使用字符串配置且一个文件类型如果有多个loader，使用!将其分开，如
 ```
 { test: /\.css$/, loader: 'style-loader!css-loader' }
 ```
+其中'-loader'可以省略，变成
+```
+{test: /\.css$/, loader: "style!css"}
+```
+
+####css资源文件的处理####
+安装
+```
+npm install style-loader css-loader --save-dev
+```
+
+
+####sass/scss资源文件的处理####
+安装
+```
+npm install sass-loader --save-dev
+```
+配置
+```
+{test: /\.scss$/, loader: "style!css!sass"}
+```
 
 ####图片资源文件的处理####
+图片资源的引用
+```
+div.img{
+    background: url(../image/xxx.jpg)
+}
+//或者
+var img = document.createElement("img");
+img.src = require("../image/xxx.jpg");
+document.body.appendChild(img);
+```
 一个典型的配置
 ```
 { test: /\.(png|jpg)$/, loader: 'url-loader?limit=8192'}
@@ -127,9 +158,93 @@ swipe();
 
 ###plugins###
 
-## 插件 ##
+####使用CommonsChunkPlugin提取公共模块####
+如果在不同的文件中各自引用了import React from 'react'，那么打包的时候react模块会被打包多次，需要使用CommonsChunkPlugin将公共的模块提取到一个公共部分
+安装
+```
+```
+一个典型的配置
+```
+var CommonsChunkPlugin = require("webpack/lib/optimize/CommonsChunkPlugin");
+module.exports = {
+    entry: {
+        p1: "./page1",
+        p2: "./page2",
+        p3: "./page3",
+        ap1: "./admin/page1",
+        ap2: "./admin/page2"
+    },
+    output: {
+        filename: "[name].js"
+    },
+    plugins: [
+        new CommonsChunkPlugin("admin-commons.js", ["ap1", "ap2"]),
+        new CommonsChunkPlugin("commons.js", ["p1", "p2", "admin-commons.js"])
+    ]
+};
+// <script>s required:
+// page1.html: commons.js, p1.js
+// page2.html: commons.js, p2.js
+// page3.html: p3.js
+// admin-page1.html: commons.js, admin-commons.js, ap1.js
+// admin-page2.html: commons.js, admin-commons.js, ap2.js
+```
+####使用extract-text-webpack-plugin独立打包样式文件####
+[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)
+安装
+```
+npm install extract-text-webpack-plugin --save-dev
+```
+典型配置
+```
+var ExtractTextPlugin = require("extract-text-webpack-plugin");
+module.exports = {
+    // ...省略各种代码
+    module: {
+        loaders: [
+            {test: /\.js$/, loader: "babel"},
+            {test: /\.css$/, loader: ExtractTextPlugin.extract("style-loader", "css-loader")},
+            {test: /\.(jpg|png|svg)$/, loader: "url?limit=8192"},
+            {test: /\.scss$/, loader: "style!css!sass"}
+        ]
+    },
+    plugins: [
+        new webpack.optimize.CommonsChunkPlugin('common.js'),
+        new ExtractTextPlugin("[name].css")
+    ]
+}
+```
+
+
+###external###
+有时候我们希望某些模块走CDN并以<script>的形式挂载到页面上来加载，但又希望能在 webpack 的模块中使用上。这时候我们可以在配置文件里使用 externals 属性来帮忙
+```
+{
+    externals: {
+        // require("jquery") 是引用自外部模块的
+        // 对应全局变量 jQuery
+        "jquery": "jQuery"
+    }
+}
+```
+确保CDN文件在webpack打包文件引入之前引入
+使用[script.js](https://github.com/ded/script.js)在脚本中加载模块
+```
+var $script = require("scriptjs");
+$script("//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js", function() {
+    $('body').html('It works!')
+});
+```
+
 
 ##配合React##
 
 
+##配合grunt/gulp##
+
+
+
+##参考##
+http://www.w2bc.com/Article/50764
+http://www.tuicool.com/articles/2qiE7jN
  
