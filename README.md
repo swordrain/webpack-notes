@@ -100,6 +100,14 @@ module.exports = {
 ```
 {test: /\.css$/, loader: "style!css"}
 ```
+也可以使用数组形式，注意此时是复数
+```
+loaders: [{
+			test: /\.js?$/,
+			exclude: /node_modules/,
+			loaders: ['react-hot','babel']
+		}]
+```
 
 ####css资源文件的处理####
 安装
@@ -116,6 +124,12 @@ npm install sass-loader --save-dev
 配置
 ```
 {test: /\.scss$/, loader: "style!css!sass"}
+```
+
+####less资源文件的处理####
+安装
+```
+npm install less-loader --save-dev
 ```
 
 ####图片资源文件的处理####
@@ -155,6 +169,7 @@ swipe();
 ```
 
 ###resolve###
+用于指明程序自动补全识别哪些后缀, 注意一下, extensions 第一个是空字符串! 对应不需要后缀的情况.
 
 ###plugins###
 
@@ -217,7 +232,7 @@ module.exports = {
 
 
 ###external###
-有时候我们希望某些模块走CDN并以<script>的形式挂载到页面上来加载，但又希望能在 webpack 的模块中使用上。这时候我们可以在配置文件里使用 externals 属性来帮忙
+有时候我们希望某些模块走CDN并以&lt;script&gt;的形式挂载到页面上来加载，但又希望能在 webpack 的模块中使用上。这时候我们可以在配置文件里使用 externals 属性来帮忙
 ```
 {
     externals: {
@@ -238,7 +253,29 @@ $script("//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js", function()
 
 
 ##配合React##
-
+安装[react-hot-loader](https://github.com/gaearon/react-hot-loader)
+```
+npm install --save-dev react-hot-loader
+```
+配置
+```
+//结合webpack-dev-server
+entry: [
+    'webpack-dev-server/client?http://0.0.0.0:3000', // WebpackDevServer host and port
+    'webpack/hot/only-dev-server', // "only" prevents reload on syntax errors
+    './scripts/index' // Your appʼs entry point
+]
+//放在babel-loader或jsx-loader之前
+module: {
+    loaders: [
+        { test: /\.jsx?$/, loaders: ['react-hot', 'jsx?harmony'], include: path.join(__dirname, 'src') }
+    ]
+}
+//plugin里
+plugins: [
+    new webpack.HotModuleReplacementPlugin()
+]
+```
 
 ##配合grunt/gulp##
 
@@ -247,4 +284,5 @@ $script("//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js", function()
 ##参考##
 http://www.w2bc.com/Article/50764
 http://www.tuicool.com/articles/2qiE7jN
- 
+http://www.cnblogs.com/LIUYANZUO/p/5184424.html
+http://gaearon.github.io/react-hot-loader/getstarted/
