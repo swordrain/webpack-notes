@@ -192,18 +192,34 @@ loaders: [{
 			loaders: ['react-hot','babel']
 		}]
 ```
+如果采用了数组形式，处理顺序是从右向左执行
 
 ####css资源文件的处理####
 安装
 ```
 npm install style-loader css-loader --save-dev
 ```
-
+引用
+```
+require('./main.css');
+```
+配置
+```
+{
+	test: /\.css$/,
+ 	loaders: ['style', 'css'],
+	include: APP_PATH
+}
+```
 
 ####sass/scss资源文件的处理####
 安装
 ```
 npm install sass-loader --save-dev
+```
+引用
+```
+require('./main.scss');
 ```
 配置
 ```
@@ -217,6 +233,10 @@ npm install less-loader --save-dev
 ```
 
 ####图片资源文件的处理####
+安装
+```
+npm install url-loader --save-dev
+```
 图片资源的引用
 ```
 div.img{
@@ -419,6 +439,7 @@ module.exports = {
         inline: true,
         // hot: true,
         contentBase: './src',
+        historyApiFallback: true,
         displayErrorDetails: true
     },
     module: {
@@ -428,9 +449,28 @@ module.exports = {
 };
 ```
 
+##webpack-dev-middleware##
+安装
+```
+npm install webpack-dev-middleware --save-dev
+```
+
 
 ##配合grunt/gulp##
 
+
+gulp
+```
+var gulp = require('gulp');
+var webpack = require('gulp-webpack');
+var webpackConfig = require('./webpack.config');
+gulp.task("webpack", function() {
+    return gulp
+        .src('./')
+        .pipe(webpack(webpackConfig))
+        .pipe(gulp.dest('./build'));
+});
+```
 
 
 ##参考##
@@ -441,4 +481,6 @@ module.exports = {
 <li>http://gaearon.github.io/react-hot-loader/getstarted/</li>
 <li>http://www.cnblogs.com/xianyulaodi/p/5314769.html</li>
 <li>http://www.cnblogs.com/yangjunhua/p/5615118.html</li>
+<li>https://zhuanlan.zhihu.com/p/20367175</li>
+<li>https://segmentfault.com/a/1190000002767365</li>
 </ol>
