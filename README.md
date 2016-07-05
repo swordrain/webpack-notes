@@ -288,6 +288,12 @@ npm install exports-loader --save
 var swipe = require('./tool/swipe.js');
 swipe(); 
 ```
+例子
+比如我们用到 Pen 这个模块，这个模块对依赖一个 window.jQuery, 可我手头的 jQuery 是 CommonJS 语法的。而 Pen 对象又是生成好了绑在全局的, 可是我又需要通过 require('pen') 获取变量。最终的写法就是做 Shim 处理直接提供支持:
+```
+{test: require.resolve('jquery'), loader: 'expose?jQuery'},
+{test: require.resolve('pen'), loader: 'exports?window.Pen'},
+```
 
 ###resolve###
 用于指明程序自动补全识别哪些后缀, 注意一下, extensions 第一个是空字符串! 对应不需要后缀的情况.
@@ -483,4 +489,5 @@ gulp.task("webpack", function() {
 <li>http://www.cnblogs.com/yangjunhua/p/5615118.html</li>
 <li>https://zhuanlan.zhihu.com/p/20367175</li>
 <li>https://segmentfault.com/a/1190000002767365</li>
+<li>https://segmentfault.com/a/1190000002551952</li>
 </ol>
