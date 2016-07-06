@@ -176,6 +176,10 @@ module.exports = {
 
 
 ###loaders###
+loaders 用于转换应用程序的资源文件，他们是运行在nodejs下的函数 使用参数来获取一个资源的来源并且返回一个新的来源(资源的位置)
+[loader列表](http://webpack.github.io/docs/list-of-loaders.html)
+
+
 如果使用字符串配置且一个文件类型如果有多个loader，使用!将其分开，如
 ```
 { test: /\.css$/, loader: 'style-loader!css-loader' }
@@ -322,6 +326,7 @@ new HtmlWebpackPlugin({
 如果在不同的文件中各自引用了import React from 'react'，那么打包的时候react模块会被打包多次，需要使用CommonsChunkPlugin将公共的模块提取到一个公共部分
 安装
 ```
+//自带插件，不需要安装
 ```
 一个典型的配置
 ```
@@ -396,6 +401,36 @@ $script("//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js", function()
 });
 ```
 
+##功能开关##
+有些代码我们只想在开发环境使用(比如 log), 或者 dogfooging 的服务器里边(比如内部员工正在测试的功能). 在你的代码中, 引用全局变量吧:
+```
+if (__DEV__) {
+  console.warn('Extra logging');
+}
+// ...
+if (__PRERELEASE__) {
+  showSecretFeature();
+}
+```
+然后配置 Webpack 当中的对应全局变量:
+```
+// webpack.config.js
+
+// definePlugin 接收字符串插入到代码当中, 所以你需要的话可以写上 JS 的字符串
+var definePlugin = new webpack.DefinePlugin({
+  __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'true')),
+  __PRERELEASE__: JSON.stringify(JSON.parse(process.env.BUILD_PRERELEASE || 'false'))
+});
+
+module.exports = {
+  entry: './main.js',
+  output: {
+    filename: 'bundle.js'       
+  },
+  plugins: [definePlugin]
+};
+```
+然后你在控制台里用 BUILD_DEV=1 BUILD_PRERELEASE=1 webpack 编译. 注意一下因为 webpack -p 会执行 uglify dead-code elimination, 任何这种代码都会被剔除, 所以你不用担心秘密功能泄漏.
 
 ##配合React##
 安装[react-hot-loader](https://github.com/gaearon/react-hot-loader)
@@ -490,4 +525,6 @@ gulp.task("webpack", function() {
 <li>https://zhuanlan.zhihu.com/p/20367175</li>
 <li>https://segmentfault.com/a/1190000002767365</li>
 <li>https://segmentfault.com/a/1190000002551952</li>
+<li>http://www.cnblogs.com/leinov/p/5330944.html</li>
+<li>https://segmentfault.com/a/1190000002552008</li>
 </ol>
