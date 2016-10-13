@@ -312,6 +312,7 @@ npm install html-webpack-plugin --save-dev
 配置
 ```
 new HtmlWebpackPlugin({
+	title: 'Hello World App',
 	template: './src/html/index.html',
         filename: 'html/index.html',
         inject: 'body',
@@ -478,7 +479,7 @@ module.exports = {
         port: 8080,
         colors: true,
         inline: true,
-        // hot: true,
+        hot: true,
         contentBase: './src',
         historyApiFallback: true,
         displayErrorDetails: true
