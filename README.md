@@ -278,7 +278,7 @@ webpack.config.js中的配置
 ```
 
 ####不符合规范的模块处理(shim)####
-参考[exports-loader](https://github.com/webpack/exports-loader)
+参考[exports-loader](https://github.com/webpack/exports-loader)  
 安装
 ```
 npm install exports-loader --save
