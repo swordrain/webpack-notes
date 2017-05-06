@@ -19,6 +19,7 @@ npm install webpack --save-dev
 
 <p>直接执行webpack命令，会去当前目录寻找默认配置文件webpack.config.js，根据该配置文件执行</p>
 <p>或者使用参数</p>
+
 ```
 --display-error-details  显示详细的出错信息
 --colors  输出结果带色彩
@@ -32,6 +33,7 @@ npm install webpack --save-dev
 
 
 最终需要将打包后的文件放入一个html中，当然这一步也可以由插件自动生成，一个典型的html文件是
+
 ```
 <!DOCTYPE html>
 <html>
@@ -48,8 +50,9 @@ npm install webpack --save-dev
 在&lt;script&gt;标签里引用了打包后的文件
 
 ## 配置 ##
-<p>默认配置文件webpack.config.js，如果要自定义，在webpack命令后跟--config [configfile.js]</p>
+默认配置文件webpack.config.js，如果要自定义，在webpack命令后跟--config [configfile.js]  
 一个webpack.config.js的示例
+
 ```
 var path = require('path');
 var webpack = require('webpack');
