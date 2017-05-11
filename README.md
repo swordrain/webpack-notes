@@ -256,6 +256,7 @@ module.exports = {
 	//[name]：代表模块集的名称，与entry配置有关，具体可自行测试
 	//[hash]：代表编译hash值，与模块集的代码有关，如果模块集的代码有修改，hash值也会变，这个在生成环境里可以解决客户端的缓存问题，如果需要的是8位的hash可以写成[hash:8]
 	//[chunkhash]：代表模块集名称的hash值，注意chunkhash与hash不能同时使用
+	
 	//chunckFileName可使用
 	//[id]: 代表模块集的id
 	//[name]: 代表模块集的名称，和require.ensure的第三个参数，具体可以自行测试
@@ -265,8 +266,11 @@ module.exports = {
 
 ### devtool
 `source-map`在一个单独的文件中产生一个完整且功能完全的文件。这个文件具有最好的source map，但是它会减慢打包文件的构建速度
+
 `cheap-module-source-map`在一个单独的文件中生成一个不带列映射的map，不带列映射提高项目构建速度，但是也使得浏览器开发者工具只能对应到具体的行，不能对应到具体的列（符号），会对调试造成不便
+
 `eval-source-map`使用eval打包源文件模块，在同一个文件中生成干净的完整的source map。这个选项可以在不影响构建速度的前提下生成完整的sourcemap，但是对打包后输出的JS文件的执行具有性能和安全的隐患。不过在开发阶段这是一个非常好的选项，但是在生产阶段一定不要用这个选项
+
 `cheap-module-eval-source-map`这是在打包文件时最快的生成source map的方法，生成的Source Map 会和打包后的JavaScript文件同行显示，没有列映射，和eval-source-map选项具有相似的缺点
 
 上述选项由上到下打包速度越来越快，不过同时也具有越来越多的负面作用，较快的构建速度的后果就是对打包后的文件的的执行有一定影响。
@@ -329,10 +333,10 @@ webpack --module-bind jade --module-bind 'css=style!css'
 也可以使用数组形式，注意此时是复数
 ```
 loaders: [{
-			test: /\.js?$/,
-			exclude: /node_modules/,
-			loaders: ['react-hot','babel']
-		}]
+	test: /\.js?$/,
+	exclude: /node_modules/,
+	loaders: ['react-hot','babel']
+}]
 ```
 多个loader的处理顺序是从右向左执行
 
@@ -413,8 +417,8 @@ module: {
 	loaders: [
   	...
   	{
-    	test: /\.css$/,
-    	loader: 'style!css?modules!postcss'
+    		test: /\.css$/,
+    		loader: 'style!css?modules!postcss'
   	}]
 },
 postcss: [
@@ -530,7 +534,7 @@ swipe();
 ```
 
 ### preLoaders和postLoaders
-处理顺序 preLoaders - loaders - postLoaders
+处理顺序 preLoaders -> loaders -> postLoaders
 ```
 module: {
 ...
@@ -599,7 +603,7 @@ plugins: [
 ```
 
 #### clean
-[clean-webpack-plugin](https://github.com/johnagan/clean-webpack-plugin)
+[clean-webpack-plugin](https://github.com/johnagan/clean-webpack-plugin)  
 安装 
 ```
 npm install --save-dev clean-webpack-plugin
@@ -710,7 +714,7 @@ module.exports = {
 
 
 #### 使用extract-text-webpack-plugin独立打包样式文件
-[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)
+[extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)  
 打包在js中的style和用`<link>`引用的style不同的是，js中的style生效可能会滞后，而`<link>`中的style在页面打开时立即生效
 安装
 ```
@@ -904,7 +908,7 @@ npm install webpack-dev-middleware --save-dev
 ```
 
 ## webpack-merge
-[webpack-merge](https://github.com/survivejs/webpack-merge)
+[webpack-merge](https://github.com/survivejs/webpack-merge)  
 安装
 ```
 npm install --save-dev webpack-merge
