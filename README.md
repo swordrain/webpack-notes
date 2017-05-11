@@ -188,7 +188,7 @@ module.exports = {
 ```
 其中plugins用来指定插件，entry指定打包的入口文件，output指定出口，module下的loaders指定文件类型和其加载器
 
-### context###  
+### context  
 
 webpack处理entry选项时的基础路径（绝对路径），默认值为`process.cmd()`，即`webpack.config.js`文件所在路径
 ```
@@ -208,7 +208,7 @@ module.exports = {
 }
 ```
 
-### watch ###  
+### watch
 ```
 module.exports = {
     entry: './A.js',
@@ -219,7 +219,7 @@ module.exports = {
 }
 ```
 
-### entry、output###  
+### entry、output
 页面入口文件和输出文件配置
 
 ```
@@ -263,7 +263,7 @@ module.exports = {
 	//[chunkhash]: 代表模块集名称的hash值，注意chunkhash与hash不能同时使用
 ```
 
-###devtool###  
+### devtool
 `source-map`在一个单独的文件中产生一个完整且功能完全的文件。这个文件具有最好的source map，但是它会减慢打包文件的构建速度
 `cheap-module-source-map`在一个单独的文件中生成一个不带列映射的map，不带列映射提高项目构建速度，但是也使得浏览器开发者工具只能对应到具体的行，不能对应到具体的列（符号），会对调试造成不便
 `eval-source-map`使用eval打包源文件模块，在同一个文件中生成干净的完整的source map。这个选项可以在不影响构建速度的前提下生成完整的sourcemap，但是对打包后输出的JS文件的执行具有性能和安全的隐患。不过在开发阶段这是一个非常好的选项，但是在生产阶段一定不要用这个选项
@@ -272,7 +272,7 @@ module.exports = {
 上述选项由上到下打包速度越来越快，不过同时也具有越来越多的负面作用，较快的构建速度的后果就是对打包后的文件的的执行有一定影响。
 在学习阶段以及在小到中性的项目上，eval-source-map是一个很好的选项，不过记得只在开发阶段使用它
 
-### externals###  
+### externals
 有时候我们希望某些模块走CDN并以`<script>`的形式挂载到页面上来加载，但又希望能在 webpack 的模块中使用上。这时候我们可以在配置文件里使用 externals 属性来帮忙，external的本意就是设置为外部引用，内部不会打包合并
 ```
 {
@@ -291,7 +291,7 @@ $script("//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js", function()
 });
 ```
 
-### loaders###  
+### loaders
 loaders 用于转换应用程序的资源文件，他们是运行在nodejs下的函数 使用参数来获取一个资源的来源并且返回一个新的来源(资源的位置)
 
 * Loader可以通过管道方式链式调用，每个 loader 可以把资源转换成任意格式并传递给下一个 loader ，但是最后一个 loader 必须返回 JavaScript。
@@ -343,7 +343,7 @@ loaders: [{
 * include/exclude:手动添加必须处理的文件（文件夹）或屏蔽不需要处理的文件（文件夹）（可选），node_modules中的文件都是编译好的可以直接加载，exclude它们后可以优化打包速度
 * query：为loaders提供额外的设置选项（可选）
 
-#### json文件的处理####  
+#### json文件的处理
 安装
 ```
 npm install --save-dev json-loader
@@ -375,7 +375,7 @@ module.exports = function() {
 };
 ```
 
-#### css资源文件的处理####  
+#### css资源文件的处理
 安装
 ```
 npm install style-loader css-loader --save-dev
@@ -401,7 +401,7 @@ require('./main.css');
 }
 ```
 
-#### css预处理器的处理####  
+#### css预处理器的处理
 安装
 ```
 npm install --save-dev postcss-loader autoprefixer
@@ -422,7 +422,7 @@ postcss: [
 ],
 ```
 
-#### sass/scss资源文件的处理####  
+#### sass/scss资源文件的处理
 安装
 ```
 npm install sass-loader --save-dev
@@ -436,7 +436,7 @@ require('./main.scss');
 {test: /\.scss$/, loader: "style!css!sass"}
 ```
 
-#### less资源文件的处理####  
+#### less资源文件的处理
 安装
 ```
 npm install less-loader --save-dev
@@ -449,7 +449,7 @@ npm install less-loader --save-dev
 }
 ```
 
-####静态文件的处理####
+#### 静态文件的处理
 安装
 ```
 npm install file-loader --save-dev
@@ -463,7 +463,7 @@ npm install file-loader --save-dev
 }
 ```
 
-#### 图片资源文件的处理####
+#### 图片资源文件的处理
 安装(url-loader是对file-loader的封装)
 ```
 npm install url-loader --save-dev
@@ -484,7 +484,7 @@ document.body.appendChild(img);
 ```
 其中limit=8192表示图片大小在8k以下的会转换成base64编码，publicPath会把打包的图片生成到该路径
 
-#### ES6/jsx语法的处理####  
+#### ES6/jsx语法的处理
 安装
 ```
 npm install --save-dev babel-loader babel-core babel-preset-es2015 babel-preset-react
@@ -507,7 +507,7 @@ webpack.config.js中的配置
 }
 ```
 
-#### 不符合规范的模块处理(shim)####  
+#### 不符合规范的模块处理(shim)
 参考[exports-loader](https://github.com/webpack/exports-loader)  
 安装
 ```
@@ -529,7 +529,7 @@ swipe();
 {test: require.resolve('pen'), loader: 'exports?window.Pen'},
 ```
 
-### preLoaders和postLoaders###  
+### preLoaders和postLoaders
 处理顺序 preLoaders - loaders - postLoaders
 ```
 module: {
@@ -551,7 +551,7 @@ jshint: {
 },
 ```
 
-### resolve###  
+### resolve
 `root`设置根路径
 `extension`用于指明程序自动补全识别哪些后缀, 注意一下, extensions 第一个是空字符串! 对应不需要后缀的情况.
 ```
@@ -578,10 +578,10 @@ resolve: {
 ```
 此时`entry`指定的是`js/home`而不是`./js/home`
 
-### plugins###  
+### plugins
 [plugin列表](http://webpack.github.io/docs/list-of-plugins.html)
 
-#### 自动安装plugin的plugin####  
+#### 自动安装plugin的plugin
 安装
 ```
 npm install npm-install-webpack-plugin --save-dev
@@ -598,7 +598,7 @@ plugins: [
 ]
 ```
 
-#### clean####  
+#### clean
 [clean-webpack-plugin](https://github.com/johnagan/clean-webpack-plugin)
 安装 
 ```
@@ -616,14 +616,14 @@ const CleanWebpackPlugin = require('clean-webpack-plugin')
 }
 ```
 
-#### 版权声明插件####  
+#### 版权声明插件
 ```
 plugins: [
     new webpack.BannerPlugin("Copyright Flying Unicorns inc.")
   ],
 ```
 
-#### 使用UglifyJsPlugin混淆压缩代码####  
+#### 使用UglifyJsPlugin混淆压缩代码
 ```
 plugins:[
 	new webpack.optimize.UglifyJsPlugin({
@@ -637,7 +637,7 @@ plugins:[
 ]
 ```
 
-#### 使用html-webpack-plugin自动生成入口文件####  
+#### 使用html-webpack-plugin自动生成入口文件
 安装
 ```
 npm install html-webpack-plugin --save-dev
@@ -656,7 +656,7 @@ new HtmlWebpackPlugin({
 })
 ```
 
-#### 使用CommonsChunkPlugin提取公共模块####  
+#### 使用CommonsChunkPlugin提取公共模块
 如果在不同的文件中各自引用了import React from 'react'，那么打包的时候react模块会被打包多次，需要使用CommonsChunkPlugin将公共的模块提取到一个公共部分
 安装
 ```
@@ -709,7 +709,7 @@ module.exports = {
 ```
 
 
-#### 使用extract-text-webpack-plugin独立打包样式文件####
+#### 使用extract-text-webpack-plugin独立打包样式文件
 [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)
 打包在js中的style和用`<link>`引用的style不同的是，js中的style生效可能会滞后，而`<link>`中的style在页面打开时立即生效
 安装
@@ -738,7 +738,7 @@ module.exports = {
 ```
 
 
-## 功能开关##
+## 功能开关
 有些代码我们只想在开发环境使用(比如 log), 或者 dogfooging 的服务器里边(比如内部员工正在测试的功能). 在你的代码中, 引用全局变量吧:
 ```
 if (__DEV__) {
@@ -769,7 +769,7 @@ module.exports = {
 ```
 然后你在控制台里用 BUILD_DEV=1 BUILD_PRERELEASE=1 webpack 编译. 注意一下因为 webpack -p 会执行 uglify dead-code elimination, 任何这种代码都会被剔除, 所以你不用担心秘密功能泄漏.
 
-## 配合React##
+## 配合React
 安装babel-loader
 ```
 npm install --save-dev babel-loader babel-preset-react
@@ -897,20 +897,20 @@ module.exports = {
 
 webpack-dev-server是在内存里生成打包文件，所以在本地路径上找不到打包后的文件
 
-##webpack-dev-middleware##
+## webpack-dev-middleware
 安装
 ```
 npm install webpack-dev-middleware --save-dev
 ```
 
-## webpack-merge##
+## webpack-merge
 [webpack-merge](https://github.com/survivejs/webpack-merge)
 安装
 ```
 npm install --save-dev webpack-merge
 ```
 
-## 配合grunt/gulp##
+## 配合grunt/gulp
 参考 [Grunt配置](http://webpack.github.io/docs/usage-with-grunt.html) [gulp配置](http://webpack.github.io/docs/usage-with-gulp.html)
 
 gulp  
@@ -941,7 +941,7 @@ gulp.task("webpack", function(callback) {
 });
 ```
 
-## 参考##
+## 参考
 
 * http://www.jianshu.com/p/1c4fd72b84e8
 * http://www.w2bc.com/Article/50764
