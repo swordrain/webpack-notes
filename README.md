@@ -1,12 +1,11 @@
-(Ongoing)
 ## 功能与作用 ##
 
-<ol>
-<li>打包工具，不光是打js还能打css以及图片等</li>
-<li>能支持各种模块，AMD,commonJS, ES6</li>
-<li>配合react.js</li>
-<li>官网http://webpack.github.io/</li>
-</ol>
+1. 打包工具，不光是打js还能打css以及图片等，并且进行压缩
+2. 不能完全替代gulp或grunt
+3. 能支持各种模块，AMD,commonJS, ES6
+4. 配合react.js
+5. 官网http://webpack.github.io/
+
 ## 安装 ##
 ```
 //全局安装
@@ -17,19 +16,42 @@ npm install webpack --save-dev
 ## 基本用法 ##
 [参考](https://webpack.github.io/docs/cli.html)
 
-<p>直接执行webpack命令，会去当前目录寻找默认配置文件webpack.config.js，根据该配置文件执行</p>
-<p>或者使用参数</p>
+`webpack entryfile destfile`
+
+或者直接执行webpack命令，此时会去当前目录寻找默认配置文件`webpack.config.js`，根据该配置文件执行  
+或者使用参数
 
 ```
+--entry 入口文件
+--output-path
+--ouput-file
+--progress 显示进度
 --display-error-details  显示详细的出错信息
 --colors  输出结果带色彩
 --profiles  输出性能数据
 --display-modules  默认情况下node_modules下的模块会被隐藏，加上后显示这些隐藏的模块
---config XXX.js 使用XXX.js作为配置文件
+--config XXX.js 使用XXX.js作为配置文件，可以为prod环境生成一份专门的配置文件
 --watch/-w  监听变动并自动执行打包
+--devtool 设置source-map、cheap-module-source-map、eval-source-map、cheap-module-eval-source-map 
 -p  压缩混淆脚本，重要
 -d  生成map映射文件，告知哪些模块被最终打包到何处
+--module-bind 绑定loader
 ```
+
+绑定loader的一个例子
+```
+不用module-bind
+//entry.js
+require("!style-loader!css-loader!./style.css") // 载入 style.css
+document.write('It works.')
+document.write(require('./module.js'))
+执行webpack entry.js bundle.js
+
+使用module-bind
+require("./style.css")
+执行webpack entry.js bundle.js --module-bind "css=style-loader!css-loader"
+```
+
 
 
 最终需要将打包后的文件放入一个html中，当然这一步也可以由插件自动生成，一个典型的html文件是
@@ -47,24 +69,19 @@ npm install webpack --save-dev
 </body>
 </html>
 ```
-在&lt;script&gt;标签里引用了打包后的文件
+在`<script>`标签里引用了打包后的文件
 
 ## 配置 ##
-默认配置文件webpack.config.js，如果要自定义，在webpack命令后跟--config [configfile.js]  
-一个webpack.config.js的示例
+默认配置文件是项目根目录下的`webpack.config.js`，如果要自定义，在webpack命令后跟--config [configfile.js]  
+一个典型webpack.config.js的示例
 
 ```
 var path = require('path');
 var webpack = require('webpack');
-/*
-extract-text-webpack-plugin插件，
-将你的样式提取到单独的css文件里，如果没有它的话，webpack会将css打包到js当中
- */
+
+//extract-text-webpack-plugin插件，将你的样式提取到单独的css文件里，如果没有它的话，webpack会将css打包到js当中
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-/*
-html-webpack-plugin插件，webpack中生成HTML的插件，
-可以将打包好的文件动态加载到html中
- */
+//html-webpack-plugin插件，webpack中生成HTML的插件，可以将打包好的文件动态加载到html中
 var HtmlWebpackPlugin = require('html-webpack-plugin');
   
 module.exports = {
@@ -171,23 +188,140 @@ module.exports = {
 ```
 其中plugins用来指定插件，entry指定打包的入口文件，output指定出口，module下的loaders指定文件类型和其加载器
 
+###context###
+webpack处理entry选项时的基础路径（绝对路径），默认值为`process.cmd()`，即`webpack.config.js`文件所在路径
+```
+Root
+|---config
+    |---webpack.config.js
+|---app.js
+```
 
+```
+module.exports = {
+    entry: './A.js',
+    context: path.join(__dirname, '..'),
+    output: {
+        filename: './bundle.js'
+    }
+}
+```
 
-###entry###
+###watch###
+```
+module.exports = {
+    entry: './A.js',
+    output: {
+        filename: './bundle.js'
+    },
+    watch: true //相当于webpack --watch
+}
+```
 
-###output###
+###entry、output###
+页面入口文件和输出文件配置
 
+```
+	entry: "./entry.js" //只会打包一个顺序依赖的模块，输出则根据output配置而定
+	entry: ["page1", "page2"] //只会打包一个顺序依赖的模块，合并到最后一个模块时导出
+	entry: { //根据入口打包多个顺序依赖的模块，key名会根据在output的配置输出
+		page1: "./page1",
+		page2: ["./entry1", "./entry2"]
+	}
+	
+	
+	output: "bundle.js"
+	output: {   //对象形式指定属性
+		path: __dirname, //path.resolve(__dirname, 'build')
+		filename: "[name].bundle.js" //
+		//publicPath 设置资源的访问路径，如"./dist/"
+		//library 设置模块导出的类名
+		//libraryTarget: 'umd' 设置模块兼容模式
+		//umdNamedDefine: true 同上
+		//chunckFileName: "[name].js"
+		//sourceMapFilename
+		//devtoolModuleFilenameTemplate
+		//devtoolFallbackModuleFilenameTemplate
+		//devtoolLineToLine
+		//hotupdateChunkFilename
+		//hotUpdateMainFilename
+		//jsonpFunction
+		//hotUpdateFunction
+		//pathinfo
+		//sourcePrefix
+		//crossOriginLoading
+	}
+	//filename可使用
+	//[name]：代表模块集的名称，与entry配置有关，具体可自行测试
+	//[hash]：代表编译hash值，与模块集的代码有关，如果模块集的代码有修改，hash值也会变，这个在生成环境里可以解决客户端的缓存问题，如果需要的是8位的hash可以写成[hash:8]
+	//[chunkhash]：代表模块集名称的hash值，注意chunkhash与hash不能同时使用
+	//chunckFileName可使用
+	//[id]: 代表模块集的id
+	//[name]: 代表模块集的名称，和require.ensure的第三个参数，具体可以自行测试
+	//[hash]: 代表编译hash值，与模块集的代码有关，如果模块集的代码有修改，hash值也会变，这个在生成环境里可以解决客户端的缓存问题
+	//[chunkhash]: 代表模块集名称的hash值，注意chunkhash与hash不能同时使用
+```
+
+###devtool###
+`source-map`在一个单独的文件中产生一个完整且功能完全的文件。这个文件具有最好的source map，但是它会减慢打包文件的构建速度
+`cheap-module-source-map`在一个单独的文件中生成一个不带列映射的map，不带列映射提高项目构建速度，但是也使得浏览器开发者工具只能对应到具体的行，不能对应到具体的列（符号），会对调试造成不便
+`eval-source-map`使用eval打包源文件模块，在同一个文件中生成干净的完整的source map。这个选项可以在不影响构建速度的前提下生成完整的sourcemap，但是对打包后输出的JS文件的执行具有性能和安全的隐患。不过在开发阶段这是一个非常好的选项，但是在生产阶段一定不要用这个选项
+`cheap-module-eval-source-map`这是在打包文件时最快的生成source map的方法，生成的Source Map 会和打包后的JavaScript文件同行显示，没有列映射，和eval-source-map选项具有相似的缺点
+
+上述选项由上到下打包速度越来越快，不过同时也具有越来越多的负面作用，较快的构建速度的后果就是对打包后的文件的的执行有一定影响。
+在学习阶段以及在小到中性的项目上，eval-source-map是一个很好的选项，不过记得只在开发阶段使用它
+
+###externals###
+有时候我们希望某些模块走CDN并以`<script>`的形式挂载到页面上来加载，但又希望能在 webpack 的模块中使用上。这时候我们可以在配置文件里使用 externals 属性来帮忙，external的本意就是设置为外部引用，内部不会打包合并
+```
+{
+    externals: {
+        // require("jquery") 是引用自外部模块的对应全局变量 jQuery
+        "jquery": "jQuery"
+    }
+}
+```
+确保CDN文件在webpack打包文件引入之前引入
+使用[script.js](https://github.com/ded/script.js)在脚本中加载模块
+```
+var $script = require("scriptjs");
+$script("//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js", function() {
+    $('body').html('It works!')
+});
+```
 
 ###loaders###
 loaders 用于转换应用程序的资源文件，他们是运行在nodejs下的函数 使用参数来获取一个资源的来源并且返回一个新的来源(资源的位置)
+
+* Loader可以通过管道方式链式调用，每个 loader 可以把资源转换成任意格式并传递给下一个 loader ，但是最后一个 loader 必须返回 JavaScript。
+* Loader可以同步或异步执行。
+* Loader运行在 node.js 环境中，所以可以做任何可能的事情。
+* Loader可以接受查询参数，以此来传递配置项给 loader。
+* Loader可以通过文件扩展名（或正则表达式）绑定给不同类型的文件。
+* Loader可以通过 npm 发布和安装。
+* 除了通过 package.json 的 main 指定，通常的模块也可以导出一个 loader 来使用。
+* Loader可以访问配置。
+* 插件可以让loader拥有更多特性。
+* Loader可以分发出附加的任意文件。
+
 [loader列表](http://webpack.github.io/docs/list-of-loaders.html)
 
+`loader`可以通过require来引用
+```
+require(!style-loader!css-loader!less-loader!./src/css/index.less);
+```
+还可以通过`module-bind`参数来引用
+```
+webpack --module-bind jade --module-bind 'css=style!css'
+```
+
+也可以通过配置`webpack.config.js`文件
 
 如果使用字符串配置且一个文件类型如果有多个loader，使用!将其分开，如
 ```
 { test: /\.css$/, loader: 'style-loader!css-loader' }
 ```
-其中'-loader'可以省略，变成
+其中'-loader'可以省略，变成 (具体看版本，在新版本中不再可省略，切记)
 ```
 {test: /\.css$/, loader: "style!css"}
 ```
@@ -199,7 +333,46 @@ loaders: [{
 			loaders: ['react-hot','babel']
 		}]
 ```
-如果采用了数组形式，处理顺序是从右向左执行
+多个loader的处理顺序是从右向左执行
+
+配置项包括 
+ 
+* test：一个匹配loaders所处理的文件的拓展名的正则表达式（必须）
+* loader：loader的名称（必须）
+* include/exclude:手动添加必须处理的文件（文件夹）或屏蔽不需要处理的文件（文件夹）（可选），node_modules中的文件都是编译好的可以直接加载，exclude它们后可以优化打包速度
+* query：为loaders提供额外的设置选项（可选）
+
+####json文件的处理####
+安装
+```
+npm install --save-dev json-loader
+```
+配置
+```
+module: {
+	loaders: [
+	  {
+	    test: /\.json$/,
+	    loader: "json-loader"
+	  }
+	]
+}
+```
+使用
+```
+//config.json
+{
+  "greetText": "Hi there and greetings from JSON!"
+}
+//main.js
+var config = require('./config.json');
+ 
+module.exports = function() {
+  var greet = document.createElement('div');
+  greet.textContent = config.greetText;
+  return greet;
+};
+```
 
 ####css资源文件的处理####
 安装
@@ -214,9 +387,38 @@ require('./main.css');
 ```
 {
 	test: /\.css$/,
- 	loaders: ['style', 'css'],
+ 	loaders: ['style-loader', 'css-loader'], //另一种写法 loader: 'style!css'
 	include: APP_PATH
 }
+```
+
+对css module的支持
+```
+{
+	test: /\.css$/,
+	loader: 'style!css?modules'//跟前面相比就在后面加上了?modules
+}
+```
+
+####css预处理器的处理####
+安装
+```
+npm install --save-dev postcss-loader autoprefixer
+```
+此时只要
+```
+...
+module: {
+	loaders: [
+  	...
+  	{
+    	test: /\.css$/,
+    	loader: 'style!css?modules!postcss'
+  	}]
+},
+postcss: [
+	require('autoprefixer')//调用autoprefixer插件
+],
 ```
 
 ####sass/scss资源文件的处理####
@@ -238,9 +440,30 @@ require('./main.scss');
 ```
 npm install less-loader --save-dev
 ```
+配合使用`autoprefixer`
+```
+{
+  test: /\.less$/,
+  loader: 'style-loader!css-loader!autoprefixer-loader!less-loader'
+}
+```
+
+####静态文件的处理####
+安装
+```
+npm install file-loader --save-dev
+```
+用法
+```
+{
+    //文件加载器，处理文件静态资源
+    test: /\.(woff|woff2|ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+    loader: 'file-loader?name=./fonts/[name].[ext]'
+}
+```
 
 ####图片资源文件的处理####
-安装
+安装(url-loader是对file-loader的封装)
 ```
 npm install url-loader --save-dev
 ```
@@ -256,28 +479,31 @@ document.body.appendChild(img);
 ```
 一个典型的配置
 ```
-{ test: /\.(png|jpg)$/, loader: 'url-loader?limit=8192'}
+{ test: /\.(png|jpg)$/, loader: 'url-loader?mimetype=image/png&limit=8192&publicPath=./dist/'}
 ```
-需要安装
-```
-npm install url-loader -save-dev
-```
-其中?limit=8192表示图片大小在8k以下的会转换成base64编码
+其中limit=8192表示图片大小在8k以下的会转换成base64编码，publicPath会把打包的图片生成到该路径
 
-####ES6语法的处理####
+####ES6/jsx语法的处理####
 安装
 ```
-npm install --save-dev babel-loader babel-core babel-preset-es2015
+npm install --save-dev babel-loader babel-core babel-preset-es2015 babel-preset-react
 ```
-在根目录下创建.babelrc配置文件
+在根目录下创建.babelrc配置文件（也可以在webpack.config.js里配置，见下）
 ```
 {
-  "presets": ["es2015"]
+  "presets": ["react", "es2015"]
 }
 ```
 webpack.config.js中的配置
 ```
-{ test: /\.js$/, exclude: /node_modules/, loader: "babel-loader" }
+{ 
+	test: /\.js$/, //test: /\.js|jsx$/ 
+	exclude: /node_modules/, 
+	loader: "babel-loader",
+	query: {
+		presets: ['es2015','react'] //配置babel
+   } 
+}
 ```
 
 ####不符合规范的模块处理(shim)####
@@ -302,10 +528,110 @@ swipe();
 {test: require.resolve('pen'), loader: 'exports?window.Pen'},
 ```
 
+###preLoaders和postLoaders###
+处理顺序 preLoaders - loaders - postLoaders
+```
+module: {
+...
+    //和loaders一样的语法，很简单
+    perLoaders: [
+        {
+            test: /\.jsx?$/,
+            include: APP_PATH,
+            loader: 'jshint-loader' //事先安装jshint-loader
+        }
+    ]
+}
+
+...
+//配置jshint的选项，支持es6的校验
+jshint: {
+  "esnext": true
+},
+```
+
+
 ###resolve###
-用于指明程序自动补全识别哪些后缀, 注意一下, extensions 第一个是空字符串! 对应不需要后缀的情况.
+`root`设置根路径
+`extension`用于指明程序自动补全识别哪些后缀, 注意一下, extensions 第一个是空字符串! 对应不需要后缀的情况.
+```
+resolve:{
+    root:path.resolve(filePath,'/src'),
+    extensions:['','.js']
+}
+```
+
+`alias`设置别名
+```
+resolve:{
+    alias:{
+        "RequestModel":path.resolve(__dirname,'src/lib/request.model')
+    }
+}, //现在可以require('RequestModel')，不用每次都用require('xxx/xxxx/xxxxx/src/lib/request.model')
+```
+
+`modulesDirectories `设置模块起始目录
+```
+resolve: {
+    modulesDirectories: ['.']
+}
+```
+此时`entry`指定的是`js/home`而不是`./js/home`
 
 ###plugins###
+
+[plugin列表](http://webpack.github.io/docs/list-of-plugins.html)
+
+####自动安装plugin的plugin####
+安装
+```
+npm install npm-install-webpack-plugin --save-dev
+```
+使用
+```
+const NpmInstallPlugin = require('npm-install-webpack-plugin');
+...
+plugins: [      new webpack.HotModuleReplacementPlugin(),      new NpmInstallPlugin({        save: true // --save      })]
+```
+
+####clean####
+[clean-webpack-plugin](https://github.com/johnagan/clean-webpack-plugin)
+安装 
+```
+npm install --save-dev clean-webpack-plugin
+```
+用法
+```
+const CleanWebpackPlugin = require('clean-webpack-plugin')
+
+// webpack config
+{
+  plugins: [
+    new CleanWebpackPlugin(paths [, {options}])
+  ]
+}
+```
+
+####版权声明插件####
+```
+plugins: [
+    new webpack.BannerPlugin("Copyright Flying Unicorns inc.")
+  ],
+```
+
+####使用UglifyJsPlugin混淆压缩代码####
+```
+plugins:[
+	new webpack.optimize.UglifyJsPlugin({
+	    compress: {
+	    	// 去除代码块内的告警语句
+	       warnings: false //webpack2中默认是false
+	    }
+	}),
+	// 优先考虑使用最多的模块，并为它们分配最小的ID
+	new webpack.optimize.OccurenceOrderPlugin() //webpack2中默认启用
+]
+```
 
 ####使用html-webpack-plugin自动生成入口文件####
 安装
@@ -317,12 +643,12 @@ npm install html-webpack-plugin --save-dev
 new HtmlWebpackPlugin({
 	title: 'Hello World App',
 	template: './src/html/index.html',
-        filename: 'html/index.html',
-        inject: 'body',
-        hash: true, // index.js?hash
-        cache: true, // if true (default) try to emit the file only if it was changed.
-        showErrors: true, // if true (default) errors details will be written into the html page.
-        chunks: ['js/index'] // filter chunks
+	filename: 'html/index.html',
+	inject: 'body',
+	hash: true, // index.js?hash
+	cache: true, // if true (default) try to emit the file only if it was changed.
+	showErrors: true, // if true (default) errors details will be written into the html page.
+	chunks: ['js/index'] // filter chunks
 })
 ```
 
@@ -347,7 +673,7 @@ module.exports = {
         filename: "[name].js"
     },
     plugins: [
-        new CommonsChunkPlugin("admin-commons.js", ["ap1", "ap2"]),
+        new CommonsChunkPlugin("admin-commons.js" /*chunkname*/, ["ap1", "ap2"] /*filename*/),
         new CommonsChunkPlugin("commons.js", ["p1", "p2", "admin-commons.js"])
     ]
 };
@@ -358,8 +684,30 @@ module.exports = {
 // admin-page1.html: commons.js, admin-commons.js, ap1.js
 // admin-page2.html: commons.js, admin-commons.js, ap2.js
 ```
+另一种
+```
+var webpack = require('webpack');
+
+var commonsPlugin =
+  new webpack.optimize.CommonsChunkPlugin('common.js');
+
+module.exports = {
+  entry: {
+    Profile: './profile.js',
+    Feed: './feed.js'
+  },
+  output: {
+    path: 'build',
+    filename: '[name].js'
+  },
+  plugins: [commonsPlugin] //打包到了common.js
+};
+```
+
+
 ####使用extract-text-webpack-plugin独立打包样式文件####
 [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)
+打包在js中的style和用`<link>`引用的style不同的是，js中的style生效可能会滞后，而`<link>`中的style在页面打开时立即生效
 安装
 ```
 npm install extract-text-webpack-plugin --save-dev
@@ -379,31 +727,12 @@ module.exports = {
     },
     plugins: [
         new webpack.optimize.CommonsChunkPlugin('common.js'),
-        new ExtractTextPlugin("[name].css")
+        new ExtractTextPlugin("[name].[chunkhash].css") //跟着入口配置来
+        //new ExtractTextPlugin("style.css", {allChunks: true})  //全打成一起
     ]
 }
 ```
 
-
-###external###
-有时候我们希望某些模块走CDN并以&lt;script&gt;的形式挂载到页面上来加载，但又希望能在 webpack 的模块中使用上。这时候我们可以在配置文件里使用 externals 属性来帮忙
-```
-{
-    externals: {
-        // require("jquery") 是引用自外部模块的
-        // 对应全局变量 jQuery
-        "jquery": "jQuery"
-    }
-}
-```
-确保CDN文件在webpack打包文件引入之前引入
-使用[script.js](https://github.com/ded/script.js)在脚本中加载模块
-```
-var $script = require("scriptjs");
-$script("//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js", function() {
-    $('body').html('It works!')
-});
-```
 
 ##功能开关##
 有些代码我们只想在开发环境使用(比如 log), 或者 dogfooging 的服务器里边(比如内部员工正在测试的功能). 在你的代码中, 引用全局变量吧:
@@ -437,10 +766,36 @@ module.exports = {
 然后你在控制台里用 BUILD_DEV=1 BUILD_PRERELEASE=1 webpack 编译. 注意一下因为 webpack -p 会执行 uglify dead-code elimination, 任何这种代码都会被剔除, 所以你不用担心秘密功能泄漏.
 
 ##配合React##
+安装babel-loader
+```
+npm install --save-dev babel-loader babel-preset-react
+```
+配置
+```
+module: {
+    loaders: [{
+      test: /\.jsx?$/, // 用正则来匹配文件路径，这段意思是匹配 js 或者 jsx
+      loader: 'babel' // 加载模块 "babel" 是 "babel-loader" 的缩写
+    }]
+}
+```
+babel的[hot loader](https://github.com/danmartinez101/babel-preset-react-hmre)模块
+```
+npm install babel-preset-react-hmre --save-dev
+```
+在`.babelrc`中配置
+```
+{  "presets": [    "es2015",    "react",    "survivejs-kanban"	], 
+	"env": {    	"start": {      		"presets": [        		"react-hmre"      		]		} 
+	}}
+```
+
+如果要配合react-hot-loader  
 安装[react-hot-loader](https://github.com/gaearon/react-hot-loader)
 ```
 npm install --save-dev react-hot-loader
 ```
+如果是使用`jsx-loader`，需要安装`npm install jsx-loader`（现在更推荐使用babel解析jsx）
 配置
 ```
 //结合webpack-dev-server
@@ -452,21 +807,28 @@ entry: [
 //放在babel-loader或jsx-loader之前
 module: {
     loaders: [
-        { test: /\.jsx?$/, loaders: ['react-hot', 'jsx?harmony'], include: path.join(__dirname, 'src') }
+        { test: /\.jsx?$/,   //test: /\.js?$/
+        	loaders: ['react-hot', 'jsx?harmony'], //loaders: ['react-hot', 'babel'],
+        	include: path.join(__dirname, 'src') 
+        }
     ]
 }
 //plugin里
 plugins: [
-    new webpack.HotModuleReplacementPlugin()
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.NoErrorsPlugin() //防报错的插件
 ]
 ```
 
 ##webpack-dev-server
-安装
+安装  
 ```
 npm install --save-dev webpack-dev-server
 ```
-配置
+
+直接启动 `webpack-dev-server --progress --colors` 
+
+用`webpack.config.js`配置  
 ```
 module.exports = {
     entry: {
@@ -479,20 +841,46 @@ module.exports = {
     devServer: {
         progress: true,
         host: '0.0.0.0',
-        port: 8080,
-        colors: true,
-        inline: true,
-        hot: true,
-        contentBase: './src',
-        historyApiFallback: true,
-        displayErrorDetails: true
+        port: 8080, //设置默认监听端口，如果省略，默认为”8080“
+        colors: true, //设置为true，使终端输出的文件为彩色的
+        inline: true, //设置为true，当源文件改变时会自动刷新页面
+        hot: true, //热加载
+        stats: 'errors-only',
+        contentBase: './dist', //默认webpack-dev-server会为根文件夹提供本地服务器，如果想为另外一个目录下的文件提供本地服务器，应该在这里设置其所在目录
+        //contentBase: path.join(__dirname) 此时入口为http://localhost:8080/(index.html),不指定入口则为http://localhost:8080/webpack-dev-server/
+        historyApiFallback: true, //在开发单页应用时非常有用，它依赖于HTML5 history API，如果设置为true，所有的跳转将指向index.html
+        displayErrorDetails: true,
+        proxy: {  //代理
+          '/api/*': {
+              target: 'http://localhost:5000',
+              secure: false
+          }
+        }
     },
     module: {
         loaders: loaders
     },
-    plugins: plugins
+    plugins: [ new webpack.HotModuleReplacementPlugin() ]
 };
 ```
+
+用`package.json`配置
+```
+{
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack-dev-server --devtool eval --progress --colors --hot --content-base build"
+  }
+}
+```
+
+1. webpack-dev-server - 在 localhost:8080 建立一个 Web 服务器
+2. --devtool eval - 为你的代码创建源地址。当有任何报错的时候可以让你更加精确地定位到文件和行号
+3. --progress - 显示合并代码进度
+4. --colors - Yay，命令行中显示颜色！
+5. --content-base build - 指向设置的输出目录
+
+webpack-dev-server是在内存里生成打包文件，所以在本地路径上找不到打包后的文件
 
 ##webpack-dev-middleware##
 安装
@@ -500,11 +888,17 @@ module.exports = {
 npm install webpack-dev-middleware --save-dev
 ```
 
+##webpack-merge##
+[webpack-merge](https://github.com/survivejs/webpack-merge)
+安装
+```
+npm install --save-dev webpack-merge
+```
 
 ##配合grunt/gulp##
+参考 [Grunt配置](http://webpack.github.io/docs/usage-with-grunt.html) [gulp配置](http://webpack.github.io/docs/usage-with-gulp.html)
 
-
-gulp
+gulp  
 ```
 var gulp = require('gulp');
 var webpack = require('gulp-webpack');
@@ -516,19 +910,49 @@ gulp.task("webpack", function() {
         .pipe(gulp.dest('./build'));
 });
 ```
-
+或者
+```
+gulp.task("webpack", function(callback) {
+    // run webpack
+    webpack({
+        // configuration
+    }, function(err, stats) {
+        if(err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+        }));
+        callback();
+    });
+});
+```
 
 ##参考##
-<ol>
-<li>http://www.w2bc.com/Article/50764</li>
-<li>http://www.tuicool.com/articles/2qiE7jN</li>
-<li>http://www.cnblogs.com/LIUYANZUO/p/5184424.html</li>
-<li>http://gaearon.github.io/react-hot-loader/getstarted/</li>
-<li>http://www.cnblogs.com/xianyulaodi/p/5314769.html</li>
-<li>http://www.cnblogs.com/yangjunhua/p/5615118.html</li>
-<li>https://zhuanlan.zhihu.com/p/20367175</li>
-<li>https://segmentfault.com/a/1190000002767365</li>
-<li>https://segmentfault.com/a/1190000002551952</li>
-<li>http://www.cnblogs.com/leinov/p/5330944.html</li>
-<li>https://segmentfault.com/a/1190000002552008</li>
-</ol>
+
+* http://www.jianshu.com/p/1c4fd72b84e8
+* http://www.w2bc.com/Article/50764
+* https://fakefish.github.io/react-webpack-cookbook
+* http://zhaoda.net/webpack-handbook
+* http://www.cnblogs.com/leinov/p/5241185.html
+* http://www.tuicool.com/articles/2qiE7jN
+* http://www.cnblogs.com/LIUYANZUO/p/5184424.html
+* http://gaearon.github.io/react-hot-loader/getstarted/
+* http://www.cnblogs.com/xianyulaodi/p/5314769.html
+* http://www.cnblogs.com/yangjunhua/p/5615118.html
+* https://zhuanlan.zhihu.com/p/20367175
+* https://zhuanlan.zhihu.com/p/20397902
+* https://segmentfault.com/a/1190000002767365
+* https://segmentfault.com/a/1190000002551952
+* http://www.cnblogs.com/leinov/p/5330944.html
+* https://segmentfault.com/a/1190000002552008
+* http://web.jobbole.com/85396/
+* http://www.cnblogs.com/giveiris/p/5237080.html
+* http://www.cnblogs.com/wdlhao/p/5801918.html
+* http://web.jobbole.com/87408/
+* http://www.07net01.com/2015/08/890558.html
+* http://www.cnblogs.com/yangjunhua/p/5680168.html
+* http://www.cnblogs.com/hh54188/p/6633671.html
+* https://segmentfault.com/a/1190000005612506
+* https://segmentfault.com/a/1190000005666159
+* http://www.cnblogs.com/yincheng/p/webpack.html
+* http://blog.csdn.net/q1056843325/article/details/54600090
+
