@@ -229,13 +229,13 @@ module.exports = {
 		page1: "./page1",
 		page2: ["./entry1", "./entry2"]
 	}
-	
+	//对应于entry的输出就叫chunk
 	
 	output: "bundle.js"
 	output: {   //对象形式指定属性
 		path: __dirname, //path.resolve(__dirname, 'build')
 		filename: "[name].bundle.js" //
-		//publicPath 设置资源的访问路径，如"./dist/"
+		//publicPath 设置资源的访问路径，如"/dist/"
 		//library 设置模块导出的类名
 		//libraryTarget: 'umd' 设置模块兼容模式
 		//umdNamedDefine: true 同上
@@ -486,7 +486,7 @@ document.body.appendChild(img);
 ```
 { test: /\.(png|jpg)$/, loader: 'url-loader?mimetype=image/png&limit=8192&publicPath=./dist/'}
 ```
-其中limit=8192表示图片大小在8k以下的会转换成base64编码，publicPath会把打包的图片生成到该路径
+其中limit=8192表示图片大小在8k以下的会转换成base64编码，publicPath会把打包的图片生成到该路径（或者在output里配置publicPath）
 
 #### ES6/jsx语法的处理
 安装
@@ -634,7 +634,8 @@ plugins:[
 	    compress: {
 	    	// 去除代码块内的告警语句
 	       warnings: false //webpack2中默认是false
-	    }
+	    },
+	    except: ['$super', '$', 'exports', 'require']    //排除关键字
 	}),
 	// 优先考虑使用最多的模块，并为它们分配最小的ID
 	new webpack.optimize.OccurenceOrderPlugin() //webpack2中默认启用
@@ -646,17 +647,26 @@ plugins:[
 ```
 npm install html-webpack-plugin --save-dev
 ```
+[参考](https://github.com/jantimon/html-webpack-plugin)  
 配置
 ```
 new HtmlWebpackPlugin({
 	title: 'Hello World App',
 	template: './src/html/index.html',
 	filename: 'html/index.html',
-	inject: 'body',
-	hash: true, // index.js?hash
-	cache: true, // if true (default) try to emit the file only if it was changed.
-	showErrors: true, // if true (default) errors details will be written into the html page.
+	inject: 'body', //true | 'head' | 'body' | false ,注入所有的资源到特定的 template 或者 templateContent 中，如果设置为true或者body，所有的javascript资源将被放置到body元素的底部，'head' 将放置到head元素中。
 	chunks: ['js/index'] // filter chunks
+	favicon:  
+	minify:{ //压缩HTML文件
+		removeComments:true, //移除HTML中的注释
+		collapseWhitespace:true //删除空白符与换行符
+	}
+	hash: true | false, 如果为 true, 将添加一个唯一的 webpack 编译 hash 到所有包含的脚本和 CSS 文件，对于解除 cache 很有用。
+	cache: true | false，如果为 true, 这是默认值，仅仅在文件修改之后才会发布文件。
+	showErrors: true | false, 如果为 true, 这是默认值，错误信息会写入到 HTML 页面中
+	chunks: 允许只添加某些块 (比如，仅仅 unit test 块)
+	chunksSortMode: 允许控制块在添加到页面之前的排序方式，支持的值：'none' | 'default' | {function}-default:'auto'
+	excludeChunks: 允许跳过某些块，(比如，跳过单元测试的块)
 })
 ```
 
@@ -739,6 +749,26 @@ module.exports = {
         //new ExtractTextPlugin("style.css", {allChunks: true})  //全打成一起
     ]
 }
+```
+
+#### assets-webpack-plugin插件解决html文件的版本号的问题
+安装
+```
+npm install assets-webpack-plugin --save-dev
+```
+[参考](https://github.com/kossnocorp/assets-webpack-plugin)  
+使用
+```
+var AssetsPlugin = require('assets-webpack-plugin');
+
+plugins: [
+	new AssetsPlugin({
+	    filename: 'build/webpack.assets.js',
+	    processOutput: function (assets) {
+	        return 'window.WEBPACK_ASSETS = ' + JSON.stringify(assets);
+	    }
+	})
+]
 ```
 
 
@@ -974,4 +1004,4 @@ gulp.task("webpack", function(callback) {
 * https://segmentfault.com/a/1190000005666159
 * http://www.cnblogs.com/yincheng/p/webpack.html
 * http://blog.csdn.net/q1056843325/article/details/54600090
-
+* http://www.cnblogs.com/tugenhua0707/p/5576262.html
