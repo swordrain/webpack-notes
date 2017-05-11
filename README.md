@@ -188,7 +188,7 @@ module.exports = {
 ```
 其中plugins用来指定插件，entry指定打包的入口文件，output指定出口，module下的loaders指定文件类型和其加载器
 
-###context###  
+### context###  
 
 webpack处理entry选项时的基础路径（绝对路径），默认值为`process.cmd()`，即`webpack.config.js`文件所在路径
 ```
@@ -200,7 +200,7 @@ Root
 
 ```
 module.exports = {
-    entry: './A.js',
+    entry: './app.js',
     context: path.join(__dirname, '..'),
     output: {
         filename: './bundle.js'
