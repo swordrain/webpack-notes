@@ -28,7 +28,7 @@ npm install webpack --save-dev
 --progress 显示进度
 --display-error-details  显示详细的出错信息
 --colors  输出结果带色彩
---profiles  输出性能数据
+--profiles  输出性能数据，可以在scripts里"stats": "webpack --profile --json > stats.json"
 --display-modules  默认情况下node_modules下的模块会被隐藏，加上后显示这些隐藏的模块
 --config XXX.js 使用XXX.js作为配置文件，可以为prod环境生成一份专门的配置文件
 --watch/-w  监听变动并自动执行打包
@@ -36,6 +36,10 @@ npm install webpack --save-dev
 -p  压缩混淆脚本，重要
 -d  生成map映射文件，告知哪些模块被最终打包到何处
 --module-bind 绑定loader
+--display-chunks 展示编译后的分块
+--display-reasons 显示更多引用模块原因
+--sort-chunks-by,--sort-assets-by,--sort-modules-by 将modules/chunks/assets进行列表排序
+-help 查看webpack帮忙文档
 ```
 
 绑定loader的一个例子
@@ -125,8 +129,8 @@ module.exports = {
                 test: /\.(woff|woff2|ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
                 loader: 'file-loader?name=./fonts/[name].[ext]'
             }, { 
-            	test: /\.scss$/, 
-            	loader: 'style!css!sass?sourceMap'}, //字符串的写法，用!分割
+            		test: /\.scss$/, 
+            		loader: 'style!css!sass?sourceMap'}, //字符串的写法，用!分割
             {
                 //图片加载器，雷同file-loader，更适合图片，可以将较小的图片转成base64，减少http请求
                 //如下配置，将小于8192byte的图片转成base64码
@@ -134,6 +138,10 @@ module.exports = {
                 // http://www.zhangxinxu.com/wordpress/2012/04/base64-url-image-%E5%9B%BE%E7%89%87-%E9%A1%B5%E9%9D%A2%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/
                 test: /\.(png|jpg|gif)$/,
                 loader: 'url-loader?limit=8192&name=./img/[hash].[ext]'
+            }, {
+            		test: /\.jade$/, loader: "jade-loader"
+            }, {
+            		test: /\. ejs$/, loader: "ejs-loader"
             }
         ]
     },
@@ -185,6 +193,24 @@ module.exports = {
     }
 };
 
+if (process.env.NODE_ENV === 'production') {
+  module.exports.devtool = '#source-map'
+  // http://vue-loader.vuejs.org/en/workflow/production.html
+  module.exports.plugins = (module.exports.plugins || []).concat([
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: '"production"'
+      }
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      }
+    }),
+    //为组件分配ID，通过这个插件webpack可以分析和优先考虑使用最多的模块，并为它们分配最小的ID
+    new webpack.optimize.OccurenceOrderPlugin()
+  ])
+}
 ```
 其中plugins用来指定插件，entry指定打包的入口文件，output指定出口，module下的loaders指定文件类型和其加载器
 
@@ -426,6 +452,13 @@ postcss: [
 ],
 ```
 
+CSS的加载策略
+
+* 建一个或多个css文件，在js的入口处引入
+* 建多个css文件，在所需的地方引入
+* css的文件与js组件使用一个命名空间（文件名、路径相同），产生一对一的效果
+
+
 #### sass/scss资源文件的处理
 安装
 ```
@@ -488,6 +521,8 @@ document.body.appendChild(img);
 ```
 其中limit=8192表示图片大小在8k以下的会转换成base64编码，publicPath会把打包的图片生成到该路径（或者在output里配置publicPath）
 
+该loader还能用来处理字体文件
+
 #### ES6/jsx语法的处理
 安装
 ```
@@ -511,6 +546,27 @@ webpack.config.js中的配置
 }
 ```
 
+#### jshint
+安装
+```
+npm install jshint jshint-loader --save-dev
+```
+使用
+```
+var common = { ...	module: {		preLoaders: [			{				test: /\.js?$/,				loaders: ['jshint'],				// define an include so we check just the files we need 
+				include: PATHS.app		}]	}, 
+};
+```
+配置`.jshintrc`文件
+```{	"browser": true, 
+	"camelcase": false, 
+	"esnext": true, 
+	"indent": 2, 
+	"latedef": false, 
+	"newcap": true, 
+	"quotmark": "double"}
+```
+
 #### 不符合规范的模块处理(shim)
 参考[exports-loader](https://github.com/webpack/exports-loader)  
 安装
@@ -529,7 +585,7 @@ swipe();
 例子
 比如我们用到 Pen 这个模块，这个模块对依赖一个 window.jQuery, 可我手头的 jQuery 是 CommonJS 语法的。而 Pen 对象又是生成好了绑在全局的, 可是我又需要通过 require('pen') 获取变量。最终的写法就是做 Shim 处理直接提供支持:
 ```
-{test: require.resolve('jquery'), loader: 'expose?jQuery'},
+{test: require.resolve('jquery'), loader: 'expose?jQuery'}, //暴露到全局
 {test: require.resolve('pen'), loader: 'exports?window.Pen'},
 ```
 
@@ -557,7 +613,7 @@ jshint: {
 
 ### resolve
 `root`设置根路径
-`extension`用于指明程序自动补全识别哪些后缀, 注意一下, extensions 第一个是空字符串! 对应不需要后缀的情况.
+`extension`用于指明程序自动补全识别哪些后缀，这样在引用的时候可以略去，注意一下，extensions 第一个是空字符串! 对应不需要后缀的情况.
 ```
 resolve:{
     root:path.resolve(filePath,'/src'),
@@ -577,7 +633,12 @@ resolve:{
 `modulesDirectories `设置模块起始目录
 ```
 resolve: {
-    modulesDirectories: ['.']
+    modulesDirectories: [//取相对路径，所以比起 root ，所以会多很多路径。查找module(可选)
+         'node_modules',
+         'bower_components',
+         'lib',
+         'src'
+    ]
 }
 ```
 此时`entry`指定的是`js/home`而不是`./js/home`
@@ -642,6 +703,26 @@ plugins:[
 ]
 ```
 
+#### 使用NoErrorsPlugin允许错误不打断程序
+```
+	new webpack.NoErrorsPlugin()
+```
+
+#### 使用ProvidePlugin将模块名称关联
+```
+new webpack.ProvidePlugin({ //加载jq
+   $: 'jquery',
+	_:'underscore' //加载underscore
+})
+```
+
+#### 使用TransferWebpackPlugin把指定文件夹下的文件复制到指定的目录
+```
+	new TransferWebpackPlugin([ //把指定文件夹下的文件复制到指定的目录
+      {from: 'www'}
+	], path.resolve(__dirname,"src"))
+```
+
 #### 使用html-webpack-plugin自动生成入口文件
 安装
 ```
@@ -650,12 +731,12 @@ npm install html-webpack-plugin --save-dev
 [参考](https://github.com/jantimon/html-webpack-plugin)  
 配置
 ```
-new HtmlWebpackPlugin({
+new HtmlWebpackPlugin({ //要生成几个html就排列几个HtmlWebpackPlugin到plugins的数组里
 	title: 'Hello World App',
 	template: './src/html/index.html',
 	filename: 'html/index.html',
 	inject: 'body', //true | 'head' | 'body' | false ,注入所有的资源到特定的 template 或者 templateContent 中，如果设置为true或者body，所有的javascript资源将被放置到body元素的底部，'head' 将放置到head元素中。
-	chunks: ['js/index'] // filter chunks
+	chunks: ['js/index'] // filter chunks，只把js/index这个chunk打包后的js注入到html
 	favicon:  
 	minify:{ //压缩HTML文件
 		removeComments:true, //移除HTML中的注释
@@ -671,11 +752,12 @@ new HtmlWebpackPlugin({
 ```
 
 #### 使用CommonsChunkPlugin提取公共模块
-如果在不同的文件中各自引用了import React from 'react'，那么打包的时候react模块会被打包多次，需要使用CommonsChunkPlugin将公共的模块提取到一个公共部分
+如果在不同的文件中各自引用了`import React from 'react'`，那么打包的时候react模块会被打包多次，需要使用CommonsChunkPlugin将公共的模块提取到一个公共部分
 安装
 ```
 //自带插件，不需要安装
 ```
+[参考](http://webpack.github.io/docs/list-of-plugins.html#commonschunkplugin)  
 一个典型的配置
 ```
 var CommonsChunkPlugin = require("webpack/lib/optimize/CommonsChunkPlugin");
@@ -706,8 +788,7 @@ module.exports = {
 ```
 var webpack = require('webpack');
 
-var commonsPlugin =
-  new webpack.optimize.CommonsChunkPlugin('common.js');
+var commonsPlugin = new webpack.optimize.CommonsChunkPlugin('common.js');
 
 module.exports = {
   entry: {
@@ -722,6 +803,13 @@ module.exports = {
 };
 ```
 
+* options.name or options.names(string|string[]): 公共模块的名称
+* options.filename (string): 公开模块的文件名（生成的文件名）
+* options.minChunks (number|Infinity|function(module,count) - boolean): 为number表示需要被多少个entries依赖才会被打包到公共代码库；为Infinity 仅仅创建公共组件块，不会把任何modules打包进去。并且提供function，以便于自定义逻辑。
+* options.chunks(string[]):只对该chunks中的代码进行提取，即对应entry里配置对象的key。
+* options.children(boolean):如果为true,那么公共组件的所有子依赖都将被选择进来
+* options.async(boolean|string):如果为true,将创建一个 option.name的子chunks（options.chunks的同级chunks） 异步common chunk
+* options.minSize(number):所有公共module的size 要大于number，才会创建common chunk
 
 #### 使用extract-text-webpack-plugin独立打包样式文件
 [extract-text-webpack-plugin](https://github.com/webpack/extract-text-webpack-plugin)  
@@ -729,6 +817,10 @@ module.exports = {
 安装
 ```
 npm install extract-text-webpack-plugin --save-dev
+```
+用法
+```
+new ExtractTextPlugin([id: string], filename: string, [options])
 ```
 典型配置
 ```
@@ -746,7 +838,7 @@ module.exports = {
     plugins: [
         new webpack.optimize.CommonsChunkPlugin('common.js'),
         new ExtractTextPlugin("[name].[chunkhash].css") //跟着入口配置来
-        //new ExtractTextPlugin("style.css", {allChunks: true})  //全打成一起
+        //new ExtractTextPlugin("style.css", {allChunks: true})  //全打成一个style.css文件
     ]
 }
 ```
@@ -808,38 +900,9 @@ module.exports = {
 ```
 npm install --save-dev babel-loader babel-preset-react
 ```
-配置
-```
-module: {
-    loaders: [{
-      test: /\.jsx?$/, // 用正则来匹配文件路径，这段意思是匹配 js 或者 jsx
-      loader: 'babel' // 加载模块 "babel" 是 "babel-loader" 的缩写
-    }]
-}
-```
-babel的[hot loader](https://github.com/danmartinez101/babel-preset-react-hmre)模块
-```
-npm install babel-preset-react-hmre --save-dev
-```
-在`.babelrc`中配置
-```
-{
-  "presets": [
-    "es2015",
-    "react",
-    "survivejs-kanban"
-	], 
-	"env": {
-    	"start": {
-      		"presets": [
-        		"react-hmre"
-      		]
-		} 
-	}
-}
-```
+配置见上文
 
-如果要配合react-hot-loader  
+如果要配合`react-hot-loader`(已过时)  
 安装[react-hot-loader](https://github.com/gaearon/react-hot-loader)
 ```
 npm install --save-dev react-hot-loader
@@ -867,6 +930,83 @@ plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin() //防报错的插件
 ]
+```
+
+配合`babel-plugin-react-transform`   
+[参考](https://github.com/gaearon/babel-plugin-react-transform)
+安装
+```
+npm install --save-dev babel-plugin-react-transform
+```
+再安装具体功能的transform（使组件实时刷新后不丢失状态）
+```
+npm install --save-dev react-transform-hmr react-transform-catch-errors redbox-react
+```
+目前一共有如下几种transform
+
+* react-transform-hmr - enables hot reloading using HMR API
+* react-transform-catch-errors - catches errors inside render()
+* react-transform-debug-inspector - renders an inline prop inspector
+* react-transform-render-visualizer - highlight components when updated
+* react-transform-style - support style and className styling for all components
+* react-transform-log-render - log component renders with passed props and state
+* react-transform-count-renders - counts how many times your components render
+
+安装babel的[hot loader](https://github.com/danmartinez101/babel-preset-react-hmre)模块使transform生效
+```
+npm install babel-preset-react-hmre --save-dev
+```
+在`.babelrc`中配置
+```
+{
+  "presets": [
+    "es2015",
+    "react",
+	], 
+	"env": {
+    	"development": {
+      		"presets": [
+        		"react-hmre"
+      		]
+		} 
+	}
+}
+```
+不用`babel-preset-react-hmre`的`.babelrc`配置示例
+```
+{
+  "presets": ["react", "es2015"],
+  "env": {
+    // this plugin will be included only in development mode, e.g.
+    // if NODE_ENV (or BABEL_ENV) environment variable is not set
+    // or is equal to "development"
+    "development": {
+      "plugins": [
+        // must be an array with options object as second item
+        ["react-transform", {
+          // must be an array of objects
+          "transforms": [{
+            // can be an NPM module name or a local path
+            "transform": "react-transform-hmr",
+            // see transform docs for "imports" and "locals" dependencies
+            "imports": ["react"],
+            "locals": ["module"]
+          }, {
+            // you can have many transforms, not just one
+            "transform": "react-transform-catch-errors",
+            "imports": ["react", "redbox-react"]
+          }, {
+            // can be an NPM module name or a local path
+            "transform": "./src/my-custom-transform"
+          }]
+          // by default we only look for `React.createClass` (and ES6 classes)
+          // but you can tell the plugin to look for different component factories:
+          // factoryMethods: ["React.createClass", "createClass"]
+        }]
+      ]
+    }
+  }
+}
 ```
 
 ## webpack-dev-server
@@ -931,17 +1071,37 @@ module.exports = {
 
 webpack-dev-server是在内存里生成打包文件，所以在本地路径上找不到打包后的文件
 
+webpack-dev-server有两种模式支持自动刷新——iframe模式和inline模式
+
+* 在iframe模式下：页面是嵌套在一个iframe下的，在代码发生改动的时候，这个iframe会重新加载
+* 在inline模式下：一个小型的webpack-dev-server客户端会作为入口文件打包，这个客户端会在后端代码改变的时候刷新页面
+
+使用iframe模式，无需额外配置，只需在浏览器输入`http://localhost:8080/webpack-dev-server/index.html`
+
+使用inline模式有两种方式：命令行和nodejs API
+
+1. 命令行方式，在运行时，加上`--inline`选项(或者在`webpack.config.js`指定)，此时访问`http://localhost:8080`
+2. nodejs API 方式 ，需要手动把`webpack-dev-server/client?http://localhost:8080`加到配置文件的入口文件处
+
 ## webpack-dev-middleware
 安装
 ```
 npm install webpack-dev-middleware --save-dev
 ```
 
-## webpack-merge
+## webpack-merge用于配置分离
 [webpack-merge](https://github.com/survivejs/webpack-merge)  
 安装
 ```
 npm install --save-dev webpack-merge
+```
+
+## 开发和生产
+```
+"scripts": {
+	"dev": "webpack-dev-server --devtool eval --progress --colors --hot --content-base build",
+	"deploy": "NODE_ENV=production webpack -p --config webpack.production.config.js"
+}
 ```
 
 ## 配合grunt/gulp
@@ -975,6 +1135,9 @@ gulp.task("webpack", function(callback) {
 });
 ```
 
+## Webpack分析可视化工具
+[网址](http://chrisbateman.github.io/webpack-visualizer/)
+
 ## 参考
 
 * http://www.jianshu.com/p/1c4fd72b84e8
@@ -996,6 +1159,7 @@ gulp.task("webpack", function(callback) {
 * http://web.jobbole.com/85396/
 * http://www.cnblogs.com/giveiris/p/5237080.html
 * http://www.cnblogs.com/wdlhao/p/5801918.html
+* http://www.cnblogs.com/wdlhao/p/5807157.html
 * http://web.jobbole.com/87408/
 * http://www.07net01.com/2015/08/890558.html
 * http://www.cnblogs.com/yangjunhua/p/5680168.html
@@ -1005,3 +1169,7 @@ gulp.task("webpack", function(callback) {
 * http://www.cnblogs.com/yincheng/p/webpack.html
 * http://blog.csdn.net/q1056843325/article/details/54600090
 * http://www.cnblogs.com/tugenhua0707/p/5576262.html
+* http://www.cnblogs.com/sloong/p/5584684.html
+* http://www.cnblogs.com/sloong/p/5689162.html
+* https://zhuanlan.zhihu.com/p/20522487
+* http://web.jobbole.com/84847/
