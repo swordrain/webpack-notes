@@ -312,7 +312,8 @@ module.exports = {
     }
 }
 ```
-确保CDN文件在webpack打包文件引入之前引入
+确保CDN文件在webpack打包文件引入之前在html里引入
+
 使用[script.js](https://github.com/ded/script.js)在脚本中加载模块
 ```
 var $script = require("scriptjs");
@@ -560,7 +561,7 @@ var common = { ...	module: {		preLoaders: [			{				test: /\.js?$/,				loade
 配置`.jshintrc`文件
 ```{	"browser": true, 
 	"camelcase": false, 
-	"esnext": true, 
+	"esnext": true,   //es6
 	"indent": 2, 
 	"latedef": false, 
 	"newcap": true, 
@@ -713,7 +714,20 @@ plugins:[
 new webpack.ProvidePlugin({ //加载jq
    $: 'jquery',
 	_:'underscore' //加载underscore
+	"window.jQuery": "jquery"
 })
+```
+使用时
+```
+//这个也不需要了 因为$, jQuery, window.jQuery都可以直接使用了
+//import $ from 'jquery';
+import './plugin.js';
+...
+myPromise.then((number) => {
+  $('body').append('<p>promise result is ' + number + ' now is ' + moment().format() + '</p>');
+  //call our jquery plugin!
+  $('p').greenify();
+});
 ```
 
 #### 使用TransferWebpackPlugin把指定文件夹下的文件复制到指定的目录
@@ -745,7 +759,7 @@ new HtmlWebpackPlugin({ //要生成几个html就排列几个HtmlWebpackPlugin到
 	hash: true | false, 如果为 true, 将添加一个唯一的 webpack 编译 hash 到所有包含的脚本和 CSS 文件，对于解除 cache 很有用。
 	cache: true | false，如果为 true, 这是默认值，仅仅在文件修改之后才会发布文件。
 	showErrors: true | false, 如果为 true, 这是默认值，错误信息会写入到 HTML 页面中
-	chunks: 允许只添加某些块 (比如，仅仅 unit test 块)
+	chunks: 允许只添加某些块 比如在其中一个针对Web的HtmlWebpackPlugin里使用chunks: ['app', 'vendors']，在另一个针对Mobile里使用chunks: ['mobile', 'vendors']
 	chunksSortMode: 允许控制块在添加到页面之前的排序方式，支持的值：'none' | 'default' | {function}-default:'auto'
 	excludeChunks: 允许跳过某些块，(比如，跳过单元测试的块)
 })
@@ -784,22 +798,33 @@ module.exports = {
 // admin-page1.html: commons.js, admin-commons.js, ap1.js
 // admin-page2.html: commons.js, admin-commons.js, ap2.js
 ```
-另一种
+
+看这个更清晰
 ```
-var webpack = require('webpack');
-
-var commonsPlugin = new webpack.optimize.CommonsChunkPlugin('common.js');
-
-module.exports = {
+var config = {
   entry: {
-    Profile: './profile.js',
-    Feed: './feed.js'
+    app: path.resolve(__dirname, 'app/main.js'),
+
+    // 当 React 作为一个 node 模块安装的时候，
+    // 我们可以直接指向它，就比如 require('react')
+    vendors: ['react']
   },
   output: {
-    path: 'build',
+    path: path.resolve(__dirname, 'dist'),
     filename: '[name].js'
   },
-  plugins: [commonsPlugin] //打包到了common.js
+  module: {
+    loaders: [{
+      test: /\.js$/,
+      exclude: [node_modules_dir],
+      loader: 'babel'
+    }]
+  },
+  plugins: [
+    new webpack.optimize.CommonsChunkPlugin({
+		names: ['vendor', 'manifest']
+    })
+  ]
 };
 ```
 
@@ -1088,6 +1113,7 @@ webpack-dev-server有两种模式支持自动刷新——iframe模式和inline�
 ```
 npm install webpack-dev-middleware --save-dev
 ```
+[参考](https://blog.risingstack.com/using-react-with-webpack-tutorial/)
 
 ## webpack-merge用于配置分离
 [webpack-merge](https://github.com/survivejs/webpack-merge)  
