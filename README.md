@@ -501,6 +501,20 @@ npm install file-loader --save-dev
 }
 ```
 
+file-loader的占位符
+```
+[ext] 资源扩展名
+[name] 资源的基本名称
+[path] 资源相对于 context 查询参数或者配置的路径
+[hash] 内容的哈希值，默认为十六进制编码的 md5
+[<hashType>:hash:<digestType>:<length>] 可选配置
+　　其他的 hashType, 即 sha1, md5, sha256, sha512
+　　其他的 digestType, 即 hex, base26, base32, base36, base49, base52, base58, base62, base64
+　　length 字符的长度
+[N] 当前文件名按照查询参数 regExp 匹配后获得到第 N 个匹配结果
+```
+
+
 #### 图片资源文件的处理
 安装(url-loader是对file-loader的封装)
 ```
@@ -523,6 +537,24 @@ document.body.appendChild(img);
 其中limit=8192表示图片大小在8k以下的会转换成base64编码，publicPath会把打包的图片生成到该路径（或者在output里配置publicPath）
 
 该loader还能用来处理字体文件
+
+`image-webpack-loader`用来压缩图片
+
+安装
+```
+npm install image-webpack-loader --save-dev
+```
+
+配置
+```
+{
+  test:/\.(png|jpg|gif|svg)$/i,
+  use:[
+    'url-loader?limit=1000&name=[name]-[hash:5].[ext]',
+    'image-webpack-loader'
+  ]
+}
+```
 
 #### ES6/jsx语法的处理
 安装
