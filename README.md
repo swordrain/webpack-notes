@@ -1302,3 +1302,4 @@ gulp.task("webpack", function(callback) {
 * http://web.jobbole.com/84847/
 * http://www.cnblogs.com/zhengrunlin/p/7070479.html
 * http://www.cnblogs.com/xiaohuochai/p/7007391.html
+* http://www.cnblogs.com/penghuwan/p/6941616.html
