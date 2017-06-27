@@ -1155,9 +1155,12 @@ module.exports = {
         port: 8080, //设置默认监听端口，如果省略，默认为”8080“
         colors: true, //设置为true，使终端输出的文件为彩色的
         inline: true, //设置为true，当源文件改变时会自动刷新页面
-        hot: true, //热加载
-        stats: 'errors-only',
-        contentBase: './dist', //默认webpack-dev-server会为根文件夹提供本地服务器，如果想为另外一个目录下的文件提供本地服务器，应该在这里设置其所在目录
+	compress: true, //gzip压缩
+        hot: true, //热加载
+	quiet: true, //当它被设置为true的时候，控制台只输出第一次编译的信息，当你保存后再次编译的时候不会输出任何内容，包括错误和警告
+	overlay: true, //编译出错在浏览器上显示错误信息
+        stats: 'errors-only', //console里的显示，其他"minimal"，"normal"，"verbose"
+        contentBase: './dist', //默认webpack-dev-server会为根文件夹提供本地服务器，如果想为另外一个目录下的文件提供本地服务器，应该在这里设置其所在目录
         //contentBase: path.join(__dirname) 此时入口为http://localhost:8080/(index.html),不指定入口则为http://localhost:8080/webpack-dev-server/
         historyApiFallback: true, //在开发单页应用时非常有用，它依赖于HTML5 history API，如果设置为true，所有的跳转将指向index.html
         displayErrorDetails: true,
