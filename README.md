@@ -554,18 +554,29 @@ npm install jshint jshint-loader --save-dev
 ```
 使用
 ```
-var common = { ...	module: {		preLoaders: [			{				test: /\.js?$/,				loaders: ['jshint'],				// define an include so we check just the files we need 
-				include: PATHS.app		}]	}, 
+var common = { ...
+	module: {
+		preLoaders: [
+			{
+				test: /\.js?$/,
+				loaders: ['jshint'],
+				// define an include so we check just the files we need 
+				include: PATHS.app
+		}]
+	}, 
 };
 ```
 配置`.jshintrc`文件
-```{	"browser": true, 
+```
+{
+	"browser": true, 
 	"camelcase": false, 
 	"esnext": true,   //es6
 	"indent": 2, 
 	"latedef": false, 
 	"newcap": true, 
-	"quotmark": "double"}
+	"quotmark": "double"
+}
 ```
 
 #### 不符合规范的模块处理(shim)
@@ -1064,10 +1075,11 @@ module.exports = {
         //contentBase: path.join(__dirname) 此时入口为http://localhost:8080/(index.html),不指定入口则为http://localhost:8080/webpack-dev-server/
         historyApiFallback: true, //在开发单页应用时非常有用，它依赖于HTML5 history API，如果设置为true，所有的跳转将指向index.html
         displayErrorDetails: true,
-        proxy: {  //代理
-          '/api/*': {
+        proxy: {  //代理,用来跨域
+          '/api/*': {
               target: 'http://localhost:5000',
-              secure: false
+              secure: false,
+	      changeOrigin: true
           }
         }
     },
