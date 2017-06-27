@@ -759,7 +759,7 @@ npm install html-webpack-plugin --save-dev
 new HtmlWebpackPlugin({ //要生成几个html就排列几个HtmlWebpackPlugin到plugins的数组里
 	title: 'Hello World App',
 	template: './src/html/index.html',
-	filename: 'html/index.html',
+	filename: 'html/index.html',// index-[hash].html
 	inject: 'body', //true | 'head' | 'body' | false ,注入所有的资源到特定的 template 或者 templateContent 中，如果设置为true或者body，所有的javascript资源将被放置到body元素的底部，'head' 将放置到head元素中。
 	chunks: ['js/index'] // filter chunks，只把js/index这个chunk打包后的js注入到html
 	favicon:  
@@ -774,6 +774,92 @@ new HtmlWebpackPlugin({ //要生成几个html就排列几个HtmlWebpackPlugin到
 	chunksSortMode: 允许控制块在添加到页面之前的排序方式，支持的值：'none' | 'default' | {function}-default:'auto'
 	excludeChunks: 允许跳过某些块，(比如，跳过单元测试的块)
 })
+```
+
+模板里面也可以传参，比如
+
+```
+//webpack
+plugins: [
+    new HtmlWebpackPlugin({
+      title:'test',
+      template:'template/template.html',//模板文件为'template.html'
+      dateData: new Date() 
+    })
+  ]
+  
+//template
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= htmlWebpackPlugin.options.title  %></title>
+</head>
+<body>
+<div><%=htmlWebpackPlugin.options.dateData %></div>
+</body>
+</html>
+```
+
+如果引入插件还可以在模板里使用ejs语法
+
+安装
+```
+npm install ejs-compiled-loader
+```
+
+配置
+```
+plugins: [
+  new HtmlWebpackPlugin({
+  template:'ejs-compiled-loader!template/template.html'})
+]
+```
+
+设置多入口
+```
+ plugins: [
+    new HtmlWebpackPlugin({
+          filename:'a.html',
+          template:'src/template/template.html',
+          title:'this is a',
+          chunks:['a']
+    }),
+    new HtmlWebpackPlugin({
+          filename:'b.html',
+          template:'src/template/template.html',
+          title:'this is b',
+          chunks:['b']
+    })
+  ]
+```
+
+内联形式加载，不再是链接，而是将文件内容直接放入html中
+
+安装
+```
+npm install --save-dev html-webpack-inline-source-plugin
+```
+
+配置
+```
+var webpack = require('webpack');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+var HtmlWebpackInlineSourcePlugin = require('html-webpack-inline-source-plugin');
+
+module.exports = {
+  entry: './entry.js',
+  output:{
+    path: __dirname,//出口路径
+    filename: 'js/[id]-[name]-[hash].js'//出口名称
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+        inlineSource: '.(js|css)$'
+    }),
+    new HtmlWebpackInlineSourcePlugin()
+  ]
+}
 ```
 
 #### 使用CommonsChunkPlugin提取公共模块
@@ -1212,3 +1298,4 @@ gulp.task("webpack", function(callback) {
 * https://zhuanlan.zhihu.com/p/20522487
 * http://web.jobbole.com/84847/
 * http://www.cnblogs.com/zhengrunlin/p/7070479.html
+* http://www.cnblogs.com/xiaohuochai/p/7007391.html
