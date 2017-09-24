@@ -302,6 +302,14 @@ module.exports = {
 上述选项由上到下打包速度越来越快，不过同时也具有越来越多的负面作用，较快的构建速度的后果就是对打包后的文件的的执行有一定影响。
 在学习阶段以及在小到中性的项目上，eval-source-map是一个很好的选项，不过记得只在开发阶段使用它
 
+其他可配置参数
+
+* eval
+* inline-source-map
+* hidden-source-map
+* cheap-source-map
+* nosources-source-map
+
 ### externals
 有时候我们希望某些模块走CDN并以`<script>`的形式挂载到页面上来加载，但又希望能在 webpack 的模块中使用上。这时候我们可以在配置文件里使用 externals 属性来帮忙，external的本意就是设置为外部引用，内部不会打包合并
 ```
@@ -320,6 +328,28 @@ var $script = require("scriptjs");
 $script("//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js", function() {
     $('body').html('It works!')
 });
+```
+
+### 异步加载
+webpack能自动将异步加载的文件分离出来
+```
+require.ensure(["./a"], function(require){
+	var a = require("./a")
+	setContent(a)
+}, "a")  //此处表示分离出的文件名为a
+
+```
+
+同时在配置里指定chunkFilename
+
+```
+{
+	output: {
+		path: __dirname + "/public",
+		filename: "bundle.js",
+		chunkFilename: "[name].js"
+	}
+}
 ```
 
 ### loaders
@@ -404,6 +434,30 @@ module.exports = function() {
   greet.textContent = config.greetText;
   return greet;
 };
+```
+
+### html文件压缩
+安装
+
+```
+npm install --save-dev html-minify-loader
+```
+
+配置
+
+```
+modules: {
+	loaders: [{
+		test: /\.html$/,
+		loader: 'html?minimize=false!html-minify'
+	}],
+	'html-minify-loader': {
+		comments: true
+	},
+	plugins: [
+		new webpack.optimize.UglifyJsPlugin()
+	}
+}
 ```
 
 #### css资源文件的处理
@@ -656,8 +710,12 @@ jshint: {
 ```
 
 ### resolve
-`root`设置根路径
+用来简化模块引用，不用每次都用很长的相对路径进行模块引用
+
+`root`设置根路径  
+
 `extension`用于指明程序自动补全识别哪些后缀，这样在引用的时候可以略去，注意一下，extensions 第一个是空字符串! 对应不需要后缀的情况.
+
 ```
 resolve:{
     root:path.resolve(filePath,'/src'),
@@ -675,6 +733,7 @@ resolve:{
 ```
 
 `modulesDirectories `设置模块起始目录
+
 ```
 resolve: {
     modulesDirectories: [//取相对路径，所以比起 root ，所以会多很多路径。查找module(可选)
@@ -686,6 +745,14 @@ resolve: {
 }
 ```
 此时`entry`指定的是`js/home`而不是`./js/home`
+
+对于引用到目录并且想加载目录下某个文件时，需要在该目录下创建`package.json`文件，并且有`main`配置
+
+```
+{
+	main: "entry.js"
+}
+```
 
 ### plugins
 [plugin列表](http://webpack.github.io/docs/list-of-plugins.html)
